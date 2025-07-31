@@ -1,17 +1,18 @@
+import Hand from "../../domain/entity/Hand";
 import HandEvaluator from "../../domain/services/HandEvaluator";
-import type { Hand } from "../../domain/types/Hand";
-import type { Output } from "../../domain/types/Output";
+import { HandInput } from "../dto/HandInput";
+import { HandOutput } from "../dto/HandOutput";
 
 export default class EvaluateHandUseCase {
 
-	async execute (hand: Hand): Promise<Output> {
+	async execute (handInput: HandInput): Promise<HandOutput> {
 		const evaluator = new HandEvaluator();
+		const hand = new Hand(handInput);
 
-		const output: Output = {
-			hand: ""
+		const handWorth = evaluator.evaluate(hand);
+		const output: HandOutput = {
+			hand: handWorth
 		};
-
-		output.hand = evaluator.evaluate(hand);
 
 		return output;
 	}

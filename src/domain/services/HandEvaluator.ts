@@ -1,87 +1,80 @@
-import { Hand } from "../types/Hand";
+import Hand from "../entity/Hand";
+import { CardValue } from "../enum/CardValue";
+import { HandWorth } from "../enum/HandWorth";
+import { Suit } from "../enum/Suit";
 
 export default class HandEvaluator {
-    evaluate (hand: Hand): string {
-		const cardValues: string[] = this.extractCardValues(hand);
-		const suits: string[] = this.extractSuits(hand);
-		const valueCounts: Record<string, number> = this.countCardValues(cardValues);
-		const suitCounts: Record<string, number> = this.countSuits(suits);
+    evaluate(hand: Hand): HandWorth {
+		const cardValues = hand.extractCardValues();
+		const suits = hand.extractSuits();
+		const cardValueCounts = this.countOccurrences(cardValues);
+		const suitCounts = this.countOccurrences(suits);
 
-		if (this.isRoyalFlush(cardValues, suitCounts)) return "Royal Flush"
-		if (this.isStraightFlush(cardValues, suitCounts)) return "Straight Flush";
-		if (this.isFourOfAKind(valueCounts)) return "Four of a Kind";
-		if (this.isFullHouse(valueCounts)) return "Full House";
-		if (this.isFlush(suitCounts)) return "Flush";
-		if (this.isStraight(cardValues)) return "Straight";
-		if (this.isThreeOfAKind(valueCounts)) return "Three of a Kind";
-		if (this.isTwoPair(valueCounts)) return "Two Pair";
-		if (this.isPair(valueCounts)) return "Pair";
-		return "High Card";
-    }
-
-	private extractCardValues(hand: Hand): string[] {
-		return hand.cards.map(card => card.slice(0, -1));
+		return this.determineHandWorth(cardValues, cardValueCounts, suitCounts);
 	}
 
-	private extractSuits(hand: Hand): string[] {
-		return hand.cards.map(card => card.slice(-1));
+	private countOccurrences<T extends CardValue | Suit>(items: T[]): Record<T, number> {
+		return items.reduce((counts: Record<T, number>, item: T) => {
+			counts[item] = (counts[item] || 0) + 1;
+			return counts;
+		}, {} as Record<T, number>);
 	}
 
-	private countCardValues(cardValues: string[]): Record<string, number> {
-		return cardValues.reduce((counts: Record<string, number>, value: string) => {
-		counts[value] = (counts[value] || 0) + 1;
-		return counts;
-		}, {});
+	private determineHandWorth(cardValues: CardValue[], cardValueCounts: Record<CardValue, number>, suitCounts: Record<Suit, number>): HandWorth {
+		if (this.isRoyalFlush(cardValues, suitCounts)) return HandWorth.ROYAL_FLUSH;
+		if (this.isStraightFlush(cardValues, suitCounts)) return HandWorth.STRAIGHT_FLUSH;
+		if (this.isFourOfAKind(cardValueCounts)) return HandWorth.FOUR_OF_A_KIND;
+		if (this.isFullHouse(cardValueCounts)) return HandWorth.FULL_HOUSE;
+		if (this.isFlush(suitCounts)) return HandWorth.FLUSH;
+		if (this.isStraight(cardValues)) return HandWorth.STRAIGHT;
+		if (this.isThreeOfAKind(cardValueCounts)) return HandWorth.THREE_OF_A_KIND;
+		if (this.isTwoPair(cardValueCounts)) return HandWorth.TWO_PAIR;
+		if (this.isPair(cardValueCounts)) return HandWorth.PAIR;
+		return HandWorth.HIGH_CARD;
 	}
 
-	private countSuits(suits: string[]): Record<string, number> {
-		return suits.reduce((counts: Record<string, number>, suit: string) => {
-		counts[suit] = (counts[suit] || 0) + 1;
-		return counts;
-		}, {});
+	private isRoyalFlush(cardValues: CardValue[], suitCounts: Record<Suit, number>): boolean {
+		return this.isRoyal(cardValues) && this.isFlush(suitCounts);
 	}
 
-	private isRoyalFlush(cardValues: string[], suitCounts: Record<string, number>): boolean {
-		const isFlush = Object.values(suitCounts).some(count => count === 5);
-		return isFlush
-		&& cardValues.includes('A')
-		&& cardValues.includes('K')
-		&& cardValues.includes('Q')
-		&& cardValues.includes('J')
-		&& cardValues.includes('10');
-	}
-
-	private isStraightFlush(cardValues: string[], suitCounts: Record<string, number>): boolean {
+	private isStraightFlush(cardValues: CardValue[], suitCounts: Record<Suit, number>): boolean {
 		return this.isFlush(suitCounts) && this.isStraight(cardValues);
 	}
 
-	private isFourOfAKind(valueCounts: Record<string, number>): boolean {
-		return Object.values(valueCounts).includes(4);
+	private isFourOfAKind(cardValueCounts: Record<CardValue, number>): boolean {
+		return Object.values(cardValueCounts).includes(4);
 	}
 
-	private isFullHouse(valueCounts: Record<string, number>): boolean {
-		return Object.values(valueCounts).includes(3) && Object.values(valueCounts).includes(2);
+	private isFullHouse(cardValueCounts: Record<CardValue, number>): boolean {
+		const values = Object.values(cardValueCounts);
+		return values.includes(3) && values.includes(2);
 	}
 
-	private isFlush(suitCounts: Record<string, number>): boolean {
+	private isRoyal(cardValues: CardValue[]): boolean {
+		return [CardValue.ACE, CardValue.KING, CardValue.QUEEN, CardValue.JACK, CardValue.TEN].every(value =>
+			cardValues.includes(value)
+		);
+	}
+
+	private isFlush(suitCounts: Record<Suit, number>): boolean {
 		return Object.values(suitCounts).some(count => count === 5);
 	}
 
-	private isStraight(cardValues: string[]): boolean {
-		const order = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-		const cardValuesAsNumbers = cardValues.map(value => order.indexOf(value));
-		return cardValuesAsNumbers.sort((a, b) => a - b).every((num, i, arr) => i === arr.length - 1 || num + 1 === arr[i + 1]);
+	private isStraight(cardValues: CardValue[]): boolean {
+		const order = Object.values(CardValue);
+		const cardIndices = cardValues.map(value => order.indexOf(value)).sort((a, b) => a - b);
+		return cardIndices.every((index, i, arr) => i === arr.length - 1 || index + 1 === arr[i + 1]);
 	}
 
-	private isThreeOfAKind(valueCounts: Record<string, number>): boolean {
-		return Object.values(valueCounts).includes(3);
+	private isThreeOfAKind(cardValueCounts: Record<CardValue, number>): boolean {
+		return Object.values(cardValueCounts).includes(3);
 	}
 
-	private isTwoPair(valueCounts: Record<string, number>): boolean {
-		return Object.values(valueCounts).filter(c => c === 2).length === 2;
+	private isTwoPair(cardValueCounts: Record<CardValue, number>): boolean {
+		return Object.values(cardValueCounts).filter(count => count === 2).length === 2;
 	}
 
-	private isPair(valueCounts: Record<string, number>): boolean {
-		return Object.values(valueCounts).includes(2);
+	private isPair(cardValueCounts: Record<CardValue, number>): boolean {
+		return Object.values(cardValueCounts).includes(2);
 	}
 }
