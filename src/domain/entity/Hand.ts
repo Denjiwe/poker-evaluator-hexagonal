@@ -1,5 +1,3 @@
-import { CardValue } from "../enum/CardValue";
-import { Suit } from "../enum/Suit";
 import { HandInput } from "../../application/dto/HandInput";
 import Card from "./Card";
 
