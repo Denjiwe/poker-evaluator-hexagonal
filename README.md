@@ -103,3 +103,5 @@ Straight Flush: 0 (0.00%) <br>
 Royal Flush: 1 (0.00%) <br>
 
 ✅ All known test cases passed! API is working correctly.
+
+## Autor: Santhiago Monteiro Pereira
