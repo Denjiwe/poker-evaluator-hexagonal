@@ -1,7 +1,8 @@
 import EvaluateHandUseCase from "../src/application/usecase/EvaluateHandUseCase";
 import { HandInput } from "../src/application/dto/HandInput";
+import TexasHoldemEvaluator from "../src/domain/services/TexasHoldemEvaluator";
 
-const useCase = new EvaluateHandUseCase();
+const useCase = new EvaluateHandUseCase(new TexasHoldemEvaluator());
 
 test("Should test a High Card hand", async function () {
     const inputHand: HandInput = {

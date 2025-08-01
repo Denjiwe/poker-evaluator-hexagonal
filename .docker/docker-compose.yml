@@ -1,0 +1,13 @@
+version: '3'
+services:
+  poker-evaluator:
+    container_name: poker-evaluator
+    build:
+      context: ../
+      dockerfile: .docker/Dockerfile
+    working_dir: /app
+    user: root
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../:/app
