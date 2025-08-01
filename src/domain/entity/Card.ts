@@ -2,30 +2,30 @@ import { CardValue } from "../enum/CardValue";
 import { Suit } from "../enum/Suit";
 
 export default class Card {
-    private value: CardValue;
-    private suit: Suit;
+    private value!: CardValue;
+    private suit!: Suit;
 
     constructor(card: string) {
-        this.value = this.setValue(card);
-        this.suit = this.setSuit(card);
+        this.setValue(card);
+        this.setSuit(card);
     }
 
-    setValue(card: string): CardValue {
+    setValue(card: string) {
         const cardValue = card.slice(0, -1);
         const enumKey = Object.keys(CardValue).find(key => CardValue[key as keyof typeof CardValue] === cardValue);
 
         if (!enumKey) throw new Error(`Invalid card value: ${cardValue}`);
 
-        return CardValue[enumKey as keyof typeof CardValue];
+        this.value = CardValue[enumKey as keyof typeof CardValue];
     }
 
-    setSuit(card: string): Suit {
+    setSuit(card: string) {
         const suit = card.slice(-1);
         const enumKey = Object.keys(Suit).find(key => Suit[key as keyof typeof Suit] === suit);
 
         if (!enumKey) throw new Error(`Invalid suit: ${suit}`);
 
-        return Suit[enumKey as keyof typeof Suit];
+        this.suit = Suit[enumKey as keyof typeof Suit];
     }
 
     getCardValue(): CardValue {

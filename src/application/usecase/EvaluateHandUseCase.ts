@@ -5,11 +5,12 @@ import { HandOutput } from "../dto/HandOutput";
 
 export default class EvaluateHandUseCase {
 
+	constructor (readonly evaluator: HandEvaluator) {}
+
 	async execute (handInput: HandInput): Promise<HandOutput> {
-		const evaluator = new HandEvaluator();
 		const hand = new Hand(handInput);
 
-		const handWorth = evaluator.evaluate(hand);
+		const handWorth = this.evaluator.evaluate(hand);
 		const output: HandOutput = {
 			hand: handWorth
 		};
